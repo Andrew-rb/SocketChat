@@ -61,10 +61,8 @@ namespace SocketChat.Server
             {
                 if (Info != null)
                 {
-                    string username = Info.Username;
-                    // Сначала оповещаем всех, что пользователь отключился
-                    _server.Broadcast(MessageProtocol.CreateSys($"{username} отключился"));
-                    // Затем удаляем его из списка, чтобы не рассылать на него же
+                    string username = Info.Username;                   
+                    _server.Broadcast(MessageProtocol.CreateSys($"{username} отключился"));                    
                     _server.RemoveClient(this);
                 }
 
@@ -120,7 +118,6 @@ namespace SocketChat.Server
             }
         }
 
-        // Исправленный метод Send – защищён от отправки на мёртвый сокет
         public void Send(string text)
         {
             try
@@ -133,7 +130,7 @@ namespace SocketChat.Server
             }
             catch
             {
-                // Клиент, скорее всего, уже отключился – молча игнорируем
+               
             }
         }
 
