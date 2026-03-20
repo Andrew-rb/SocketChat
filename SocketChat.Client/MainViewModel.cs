@@ -8,7 +8,7 @@ namespace SocketChat.Client
         public ObservableCollection<ChatMessage> Messages { get; } = new();
         public ObservableCollection<string> Users { get; } = new();
         private TcpChatClient _client = new();
-        private string _username = string.Empty; 
+        private string _username = string.Empty;
 
         public MainViewModel()
         {
@@ -51,6 +51,9 @@ namespace SocketChat.Client
         {
             _client.Send(MessageProtocol.CreateLeave(_username));
             _client.Disconnect();
+
+            // Clear the user list because we are no longer connected
+            Users.Clear();
         }
 
         private void OnRawMessage(string raw)

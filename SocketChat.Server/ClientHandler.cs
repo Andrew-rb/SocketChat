@@ -10,6 +10,7 @@ namespace SocketChat.Server
         private Thread _thread;
         private bool _running = true;
         private readonly StringBuilder _receiveBuffer = new();
+        private bool _isLeaving = false;   // indicates a normal LEAVE
 
         public ClientInfo Info { get; private set; }
 
@@ -59,12 +60,15 @@ namespace SocketChat.Server
             catch { }
             finally
             {
-                if (Info != null)
+                // Only broadcast if the client didn't leave normally
+                if (!_isLeaving && Info != null)
                 {
-                    string username = Info.Username;                   
-                    _server.Broadcast(MessageProtocol.CreateSys($"{username} отключился"));                    
-                    _server.RemoveClient(this);
+                    string username = Info.Username;
+                    _server.Broadcast(MessageProtocol.CreateSys($"{username} отключился"));
                 }
+
+                if (Info != null)
+                    _server.RemoveClient(this);
 
                 try
                 {
@@ -97,6 +101,7 @@ namespace SocketChat.Server
 
                     _server.AddClient(this);
 
+                    // Inform the new client about existing users
                     foreach (var existing in _server.GetAllClients())
                     {
                         if (existing.Info != null && existing != this)
@@ -113,6 +118,13 @@ namespace SocketChat.Server
                     break;
 
                 case MessageType.LEAVE:
+                    // Normal leave: broadcast the departure to everyone (including this client)
+                    _isLeaving = true;
+                    if (Info != null)
+                    {
+                        _server.Broadcast(MessageProtocol.CreateSys($"{Info.Username} отключился"));
+                        _server.RemoveClient(this);
+                    }
                     Disconnect();
                     break;
             }
@@ -128,10 +140,7 @@ namespace SocketChat.Server
                 var data = Encoding.UTF8.GetBytes(text);
                 _socket.Send(data);
             }
-            catch
-            {
-               
-            }
+            catch { }
         }
 
         public void Disconnect()
