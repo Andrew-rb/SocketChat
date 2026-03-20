@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="SocketChat.Client/SocketChat.Client.csproj" />
+  <Project Path="SocketChat.Server/SocketChat.Server.csproj" />
+</Solution>
