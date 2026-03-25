@@ -33,6 +33,7 @@ namespace SocketChat.Client
             }
 
             var ok = await _client.Connect(remoteIp, remotePort, localIp, localPort);
+
             if (!ok)
             {
                 AddSystemMessage("Ошибка подключения (возможно, локальный порт занят или сервер недоступен)");
@@ -43,7 +44,8 @@ namespace SocketChat.Client
 
         public void Send(string text)
         {
-            if (string.IsNullOrWhiteSpace(text)) return;
+            if (string.IsNullOrWhiteSpace(text)) 
+                return;
             _client.Send(MessageProtocol.CreateMsg(_username, text));
         }
 
@@ -52,7 +54,6 @@ namespace SocketChat.Client
             _client.Send(MessageProtocol.CreateLeave(_username));
             _client.Disconnect();
 
-            // Clear the user list because we are no longer connected
             Users.Clear();
         }
 

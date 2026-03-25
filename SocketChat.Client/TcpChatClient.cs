@@ -51,7 +51,8 @@ namespace SocketChat.Client
                     {
                         string current = _receiveBuffer.ToString();
                         int newLineIndex = current.IndexOf('\n');
-                        if (newLineIndex < 0) break;
+                        if (newLineIndex < 0) 
+                            break;
 
                         string message = current.Substring(0, newLineIndex);
                         _receiveBuffer.Remove(0, newLineIndex + 1);

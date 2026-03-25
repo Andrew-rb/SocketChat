@@ -6,12 +6,13 @@ namespace SocketChat.Server
         static void Main()
         {
             Console.Write("Введите IP сервера: ");
-            string ip = Console.ReadLine();
+            string? ip = Console.ReadLine();
 
             Console.Write("Введите TCP порт сервера: ");
             int tcpPort = int.Parse(Console.ReadLine());
 
             var server = new TcpChatServer();
+
             if (!server.Start(ip, tcpPort))
             {
                 Console.WriteLine("Ошибка старта сервера.");

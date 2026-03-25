@@ -10,7 +10,7 @@ namespace SocketChat.Server
         private Thread _thread;
         private bool _running = true;
         private readonly StringBuilder _receiveBuffer = new();
-        private bool _isLeaving = false;   // indicates a normal LEAVE
+        private bool _isLeaving = false;
 
         public ClientInfo Info { get; private set; }
 
@@ -60,7 +60,6 @@ namespace SocketChat.Server
             catch { }
             finally
             {
-                // Only broadcast if the client didn't leave normally
                 if (!_isLeaving && Info != null)
                 {
                     string username = Info.Username;
@@ -84,10 +83,14 @@ namespace SocketChat.Server
             switch (msg.Type)
             {
                 case MessageType.JOIN:
-                    string ip = _socket.RemoteEndPoint.ToString().Split(':')[0];
-                    if (_server.IsIpConnected(ip))
+                    
+                    string endpoint = _socket.RemoteEndPoint.ToString();
+                    string ip = endpoint.Split(':')[0];
+                    int port = int.Parse(endpoint.Split(':')[1]);
+
+                    if (_server.IsClientConnected(ip, port))
                     {
-                        Send(MessageProtocol.CreateSys("IP уже подключен"));
+                        Send(MessageProtocol.CreateSys("IP и порт уже подключены"));
                         Disconnect();
                         return;
                     }
@@ -96,21 +99,21 @@ namespace SocketChat.Server
                     {
                         Username = msg.Username,
                         IP = ip,
+                        Port = port,
                         Socket = _socket
                     };
 
                     _server.AddClient(this);
 
-                    // Inform the new client about existing users
                     foreach (var existing in _server.GetAllClients())
                     {
                         if (existing.Info != null && existing != this)
                         {
-                            Send(MessageProtocol.CreateSys($"{existing.Info.Username} уже в чате с {existing.Info.IP}"));
+                            Send(MessageProtocol.CreateSys($"{existing.Info.Username} уже в чате с {existing.Info.IP}:{existing.Info.Port}"));
                         }
                     }
 
-                    _server.Broadcast(MessageProtocol.CreateSys($"{Info.Username} подключился с {Info.IP}"));
+                    _server.Broadcast(MessageProtocol.CreateSys($"{Info.Username} подключился с {Info.IP}:{Info.Port}"));
                     break;
 
                 case MessageType.MSG:
@@ -118,7 +121,6 @@ namespace SocketChat.Server
                     break;
 
                 case MessageType.LEAVE:
-                    // Normal leave: broadcast the departure to everyone (including this client)
                     _isLeaving = true;
                     if (Info != null)
                     {

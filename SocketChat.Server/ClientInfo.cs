@@ -6,6 +6,7 @@ namespace SocketChat.Server
     {
         public string? Username { get; set; }
         public string? IP { get; set; }
+        public int? Port { get; set; }          
         public Socket? Socket { get; set; }
     }
 }

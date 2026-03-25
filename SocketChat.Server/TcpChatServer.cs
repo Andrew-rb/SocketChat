@@ -8,6 +8,7 @@ namespace SocketChat.Server
     {
         private Socket? _listener;
         private Thread? _acceptThread;
+        
         private readonly ConcurrentDictionary<string, ClientHandler> _clients = new();
 
         public bool Start(string ip, int port)
@@ -43,26 +44,30 @@ namespace SocketChat.Server
             }
         }
 
-        public void AddClient(ClientHandler handler) => _clients.TryAdd(handler.Info.IP, handler);
-        public void RemoveClient(ClientHandler handler) => _clients.TryRemove(handler.Info.IP, out _);
-        public bool IsIpConnected(string ip) => _clients.ContainsKey(ip);
+        public void AddClient(ClientHandler handler) =>
+            _clients.TryAdd(GetKey(handler.Info.IP, handler.Info.Port), handler);
+
+        public void RemoveClient(ClientHandler handler) =>
+            _clients.TryRemove(GetKey(handler.Info.IP, handler.Info.Port), out _);
+
+        public bool IsClientConnected(string ip, int port) =>
+            _clients.ContainsKey(GetKey(ip, port));
+
         public IEnumerable<ClientHandler> GetAllClients() => _clients.Values;
 
         public void Broadcast(string message)
         {
             var snapshot = _clients.Values.ToList();
-
             foreach (var client in snapshot)
             {
                 try
                 {
                     client.Send(message);
                 }
-                catch
-                {
-                    
-                }
+                catch { }
             }
         }
+
+        private static string GetKey(string ip, int? port) => $"{ip}:{port}";
     }
 }
